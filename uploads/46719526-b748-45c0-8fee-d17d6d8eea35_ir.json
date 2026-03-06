@@ -1,0 +1,136 @@
+{
+  "job_id": "46719526-b748-45c0-8fee-d17d6d8eea35",
+  "source_format": "docx",
+  "paragraphs": [
+    {
+      "id": "p_0",
+      "text": "Deep Learning in Recommender Systems",
+      "style": "Title",
+      "is_bold": false,
+      "font_size": null,
+      "type": "title",
+      "heading_level": 0
+    },
+    {
+      "id": "p_1",
+      "text": "Abstract",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "abstract",
+      "heading_level": 0
+    },
+    {
+      "id": "p_2",
+      "text": "This paper explores deep learning architectures for recommendation tasks...",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "body",
+      "heading_level": 0
+    },
+    {
+      "id": "p_3",
+      "text": "Introduction",
+      "style": "Heading 1",
+      "is_bold": false,
+      "font_size": null,
+      "type": "heading",
+      "heading_level": 1
+    },
+    {
+      "id": "p_4",
+      "text": "Deep learning has transformed AI (Goodfellow et al., 2016). Many systems use neural networks (Smith & Jones, 2020).",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "body",
+      "heading_level": 0
+    },
+    {
+      "id": "p_5",
+      "text": "Methodology",
+      "style": "Heading 1",
+      "is_bold": false,
+      "font_size": null,
+      "type": "heading",
+      "heading_level": 1
+    },
+    {
+      "id": "p_6",
+      "text": "We use a multilayer perceptron approach as suggested by Brown (2019).",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "body",
+      "heading_level": 0
+    },
+    {
+      "id": "p_7",
+      "text": "References",
+      "style": "Heading 1",
+      "is_bold": false,
+      "font_size": null,
+      "type": "heading",
+      "heading_level": 1
+    },
+    {
+      "id": "p_8",
+      "text": "Brown, A. (2019). Neural Nets.",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "reference",
+      "heading_level": 0
+    },
+    {
+      "id": "p_9",
+      "text": "Goodfellow, I. (2016). Deep Learning.",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "reference",
+      "heading_level": 0
+    },
+    {
+      "id": "p_10",
+      "text": "Smith, J., & Jones, M. (2020). Recommender Systems.",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "reference",
+      "heading_level": 0
+    }
+  ],
+  "tables": [],
+  "raw_text": "Deep Learning in Recommender Systems Abstract This paper explores deep learning architectures for recommendation tasks... Introduction Deep learning has transformed AI (Goodfellow et al., 2016). Many systems use neural networks (Smith & Jones, 2020). Methodology We use a multilayer perceptron approach as suggested by Brown (2019). References Brown, A. (2019). Neural Nets. Goodfellow, I. (2016). Deep Learning. Smith, J., & Jones, M. (2020). Recommender Systems.",
+  "word_count": 65,
+  "title": "Deep Learning in Recommender Systems",
+  "abstract": "Abstract",
+  "sections": [
+    {
+      "title": "Introduction",
+      "level": 1,
+      "paragraph_id": "p_3"
+    },
+    {
+      "title": "Methodology",
+      "level": 1,
+      "paragraph_id": "p_5"
+    },
+    {
+      "title": "References",
+      "level": 1,
+      "paragraph_id": "p_7"
+    }
+  ],
+  "citations_raw": [
+    "(Smith & Jones, 2020)"
+  ],
+  "references_raw": [
+    "Brown, A. (2019). Neural Nets.",
+    "Goodfellow, I. (2016). Deep Learning.",
+    "Smith, J., & Jones, M. (2020). Recommender Systems."
+  ],
+  "detected_style": "APA"
+}
