@@ -1,0 +1,264 @@
+{
+  "job_id": "d89776dc-9242-4837-bc94-30eeecded459",
+  "source_format": "docx",
+  "paragraphs": [
+    {
+      "id": "p_0",
+      "text": "Deep Learning in Recommender Systems",
+      "style": "Title",
+      "is_bold": false,
+      "font_size": null,
+      "type": "title",
+      "heading_level": 0
+    },
+    {
+      "id": "p_1",
+      "text": "Abstract",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "abstract",
+      "heading_level": 0
+    },
+    {
+      "id": "p_2",
+      "text": "This paper explores deep learning architectures for recommendation tasks...",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "body",
+      "heading_level": 0
+    },
+    {
+      "id": "p_3",
+      "text": "I. Introduction",
+      "style": "Heading 1",
+      "is_bold": false,
+      "font_size": null,
+      "type": "heading",
+      "heading_level": 1
+    },
+    {
+      "id": "p_4",
+      "text": "Deep learning has transformed AI (Goodfellow et al., 2016).",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "body",
+      "heading_level": 0
+    },
+    {
+      "id": "p_5",
+      "text": "II. Literature Review",
+      "style": "Heading 1",
+      "is_bold": false,
+      "font_size": null,
+      "type": "heading",
+      "heading_level": 1
+    },
+    {
+      "id": "p_6",
+      "text": "Many systems use neural networks (Smith & Jones, 2020).",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "body",
+      "heading_level": 0
+    },
+    {
+      "id": "p_7",
+      "text": "III. Methodology",
+      "style": "Heading 1",
+      "is_bold": false,
+      "font_size": null,
+      "type": "heading",
+      "heading_level": 1
+    },
+    {
+      "id": "p_8",
+      "text": "We use a multilayer perceptron approach.",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "body",
+      "heading_level": 0
+    },
+    {
+      "id": "p_9",
+      "text": "IV. Results",
+      "style": "Heading 1",
+      "is_bold": false,
+      "font_size": null,
+      "type": "heading",
+      "heading_level": 1
+    },
+    {
+      "id": "p_10",
+      "text": "Validation scores reached 95%.",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "body",
+      "heading_level": 0
+    },
+    {
+      "id": "p_11",
+      "text": "V. Conclusion",
+      "style": "Heading 1",
+      "is_bold": false,
+      "font_size": null,
+      "type": "heading",
+      "heading_level": 1
+    },
+    {
+      "id": "p_12",
+      "text": "Future work should use transformers.",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "body",
+      "heading_level": 0
+    },
+    {
+      "id": "p_13",
+      "text": "VI. References",
+      "style": "Heading 1",
+      "is_bold": false,
+      "font_size": null,
+      "type": "heading",
+      "heading_level": 1
+    },
+    {
+      "id": "p_14",
+      "text": "Brown, A. (2019). Neural Nets.",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "reference",
+      "heading_level": 0
+    },
+    {
+      "id": "p_15",
+      "text": "Goodfellow, I. (2016). Deep Learning.",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "reference",
+      "heading_level": 0
+    },
+    {
+      "id": "p_16",
+      "text": "Smith, J., & Jones, M. (2020). Recommender Systems.",
+      "style": "Normal",
+      "is_bold": false,
+      "font_size": null,
+      "type": "reference",
+      "heading_level": 0
+    }
+  ],
+  "tables": [],
+  "raw_text": "Deep Learning in Recommender Systems Abstract This paper explores deep learning architectures for recommendation tasks... Introduction Deep learning has transformed AI (Goodfellow et al., 2016). Literature Review Many systems use neural networks (Smith & Jones, 2020). Methodology We use a multilayer perceptron approach. Results Validation scores reached 95%. Conclusion Future work should use transformers. References Brown, A. (2019). Neural Nets. Goodfellow, I. (2016). Deep Learning. Smith, J., & Jones, M. (2020). Recommender Systems.",
+  "word_count": 73,
+  "title": "Deep Learning in Recommender Systems",
+  "abstract": "Abstract",
+  "sections": [
+    {
+      "title": "Introduction",
+      "level": 1,
+      "paragraph_id": "p_3"
+    },
+    {
+      "title": "Literature Review",
+      "level": 1,
+      "paragraph_id": "p_5"
+    },
+    {
+      "title": "Methodology",
+      "level": 1,
+      "paragraph_id": "p_7"
+    },
+    {
+      "title": "Results",
+      "level": 1,
+      "paragraph_id": "p_9"
+    },
+    {
+      "title": "Conclusion",
+      "level": 1,
+      "paragraph_id": "p_11"
+    },
+    {
+      "title": "References",
+      "level": 1,
+      "paragraph_id": "p_13"
+    }
+  ],
+  "citations_raw": [
+    "(Smith & Jones, 2020)"
+  ],
+  "references_raw": [
+    "Brown, A. (2019). Neural Nets.",
+    "Goodfellow, I. (2016). Deep Learning.",
+    "Smith, J., & Jones, M. (2020). Recommender Systems."
+  ],
+  "detected_style": "APA",
+  "change_log": [
+    {
+      "type": "heading",
+      "before": "Introduction",
+      "after": "I. Introduction",
+      "rule": "IEEE heading 1 format"
+    },
+    {
+      "type": "heading",
+      "before": "Literature Review",
+      "after": "II. Literature Review",
+      "rule": "IEEE heading 1 format"
+    },
+    {
+      "type": "heading",
+      "before": "Methodology",
+      "after": "III. Methodology",
+      "rule": "IEEE heading 1 format"
+    },
+    {
+      "type": "heading",
+      "before": "Results",
+      "after": "IV. Results",
+      "rule": "IEEE heading 1 format"
+    },
+    {
+      "type": "heading",
+      "before": "Conclusion",
+      "after": "V. Conclusion",
+      "rule": "IEEE heading 1 format"
+    },
+    {
+      "type": "heading",
+      "before": "References",
+      "after": "VI. References",
+      "rule": "IEEE heading 1 format"
+    }
+  ],
+  "style_applied": "IEEE",
+  "formatted": true,
+  "validation": {
+    "score": 86,
+    "category_scores": {
+      "citations": 100,
+      "structure": 83,
+      "abstract": 100,
+      "formatting": 60
+    },
+    "issues": [
+      {
+        "severity": "warning",
+        "type": "structure",
+        "message": "Required section missing: Abstract",
+        "rule": "IEEE requires Abstract section"
+      }
+    ],
+    "total_issues": 1,
+    "total_changes": 6
+  }
+}

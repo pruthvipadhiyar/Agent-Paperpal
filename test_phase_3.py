@@ -1,7 +1,7 @@
 import os
 import uuid
 import json
-from app import ingest_document, detect_structure, format_document, render_docx
+from app import ingest_document, detect_structure, format_document, render_docx, validate_document
 
 def test_phase_3():
     job_id = str(uuid.uuid4())
@@ -19,10 +19,20 @@ def test_phase_3():
     # 3. Format
     ir = format_document(ir, style)
     
-    # 4. Render
+    # 4. Validate (Phase 4)
+    validation = validate_document(ir)
+    ir['validation'] = validation
+    
+    # 5. Render
     output_path = render_docx(ir, job_id)
     
     # Log findings
+    print("-" * 30)
+    print(f"Compliance Score: {validation['score']}/100")
+    print(f"Total Issues: {validation['total_issues']}")
+    for issue in validation['issues']:
+        print(f" - [{issue['severity'].upper()}] {issue['message']}")
+    
     print("-" * 30)
     print(f"Style Applied: {ir.get('style_applied')}")
     print(f"Change Log Entries: {len(ir.get('change_log', []))}")

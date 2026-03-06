@@ -439,16 +439,98 @@ Sort them correctly per the style. Return ONLY JSON.'''
     return ir
 
 
-def validate_document(ir):
-    """Calculates a simulated compliance score for the intermediate representation."""
-    return {'score': 0.92, 'issues': ['Manual review recommended for reference links']}
+def validate_document(ir: dict) -> dict:
+    """
+    Performs critical checks: Citation consistency, required sections, and abstract word counts.
+    Returns a unified validation report and score.
+    """
+    issues = []
+    scores = {}
+
+    ## CHECK 1: Citation-Reference Consistency (30% of score)
+    citations = ir.get('citations_raw', [])
+    references = ir.get('references_raw', [])
+
+    ## Extract author keys from citations (APA: 'Smith, 2020' → 'smith')
+    cite_keys = set()
+    for c in citations:
+        match = re.search(r'([A-Z][a-z]+).*?(\d{4})', c)
+        if match: cite_keys.add(f'{match.group(1).lower()}_{match.group(2)}')
+
+    ## Extract author keys from references
+    ref_keys = set()
+    for r in references:
+        match = re.search(r'^([A-Z][a-z]+)', r)
+        year = re.search(r'(\d{4})', r)
+        if match and year: ref_keys.add(f'{match.group(1).lower()}_{year.group(1)}')
+
+    unmatched = cite_keys - ref_keys
+    for key in list(unmatched)[:5]:  # max 5 issues to show
+        issues.append({'severity':'error', 'type':'citation',
+                       'message':f'Citation "{key}" has no matching reference entry',
+                       'rule':'Every in-text citation must have a reference list entry'})
+    
+    citation_score = max(0.0, 1.0 - len(unmatched)/max(len(cite_keys),1))
+    scores['citations'] = round(citation_score * 100)
+
+    ## CHECK 2: Required Sections (25% of score)
+    rules = extract_rules(ir.get('style_applied', 'APA 7th Edition'))
+    required = rules.get('required_sections', [])
+    section_titles = [s['title'].lower() for s in ir.get('sections', [])]
+    missing = []
+    for req in required:
+        if not any(req.lower() in s for s in section_titles):
+            missing.append(req)
+            issues.append({'severity':'warning', 'type':'structure',
+                           'message':f'Required section missing: {req}',
+                           'rule':f'{ir.get("style_applied","")} requires {req} section'})
+    
+    section_score = max(0.0, 1.0 - len(missing)/max(len(required),1))
+    scores['structure'] = round(section_score * 100)
+
+    ## CHECK 3: Abstract word count (20% of score)
+    abstract_text = ir.get('abstract', '') or ""
+    abstract_words = len(abstract_text.split())
+    max_words = rules.get('abstract_max_words', 250)
+    
+    if abstract_words > max_words:
+        issues.append({'severity':'warning', 'type':'abstract',
+                       'message':f'Abstract is {abstract_words} words (limit: {max_words})',
+                       'rule':f'{ir.get("style_applied","")} abstract max {max_words} words'})
+        abstract_score = max_words / abstract_words
+    elif abstract_words == 0:
+        issues.append({'severity':'error', 'type':'abstract',
+                       'message':'No abstract detected in document',
+                       'rule':'Abstract required'})
+        abstract_score = 0.0
+    else:
+        abstract_score = 1.0
+    scores['abstract'] = round(abstract_score * 100)
+
+    ## CHECK 4: Formatting changes score (25% of score)
+    change_count = len(ir.get('change_log', []))
+    change_score = min(1.0, change_count / 10.0)  # full score if 10+ changes made
+    scores['formatting'] = round(change_score * 100)
+
+    ## OVERALL SCORE (weighted)
+    overall = (scores['citations']*0.30 + scores['structure']*0.25 +
+               scores['abstract']*0.20 + scores['formatting']*0.25)
+    overall = round(overall)
+
+    return {
+        'score': overall,
+        'category_scores': scores,
+        'issues': issues,
+        'total_issues': len(issues),
+        'total_changes': change_count
+    }
 
 def render_docx(ir: dict, job_id: str) -> str:
     """Renders the IR back into a professionally formatted .docx file."""
     from docx.shared import Pt, Inches
     from docx.enum.text import WD_ALIGN_PARAGRAPH
     
-    output_filename = f"{job_id}_formatted.docx"
+    output_filename = f"{job_id}.docx"
     output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
     
     doc = docx.Document()
@@ -570,6 +652,9 @@ def upload():
             # Render final output
             output_path = render_docx(ir, job_id)
             
+            # 7. Update JOBS_IR with final formatted state
+            JOBS_IR[job_id] = ir
+            
             # Update job as complete
             update_job(job_id, 'completed', score=validation['score'], 
                        changes=len(ir.get('change_log', [])))
@@ -589,7 +674,8 @@ def result(job_id):
     job = get_job(job_id)
     if not job:
         return "Job not found", 404
-    return render_template('result.html', job=job)
+    ir = JOBS_IR.get(job_id)
+    return render_template('result.html', job=job, ir=ir)
 
 @app.route('/download/<job_id>')
 def download(job_id):
