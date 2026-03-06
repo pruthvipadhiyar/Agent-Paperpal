@@ -305,63 +305,137 @@ def detect_structure(ir):
     return ir
 
 
-def format_document(ir, style):
-    """
-    Orchestrates the AI-driven transformation sections of the manuscript.
-    Uses section-by-section processing to handle long documents.
-    """
-    if not ANTHROPIC_CLIENT:
-        print("Warning: Anthropic client not initialized. Skipping AI formatting.")
-        ir['formatted_by'] = f"{style} (SIMULATED)"
-        return ir
+def extract_rules(style_name: str) -> dict:
+    """Return a rules dict for the selected style."""
+    RULES = {
+      'APA 7th Edition': {
+        'citation_format': 'author_year',
+        'citation_pattern': '(Author, Year)' ,
+        'reference_order': 'alphabetical',
+        'heading_style': {'1': 'Bold, Centered', '2': 'Bold, Left', '3': 'Bold Italic, Left'},
+        'abstract_max_words': 250,
+        'doi_format': 'https://doi.org/...',
+        'line_spacing': 'double',
+        'font': 'Times New Roman 12pt',
+        'required_sections': ['Abstract', 'Introduction', 'Method', 'Results', 'Discussion', 'References'],
+      },
+      'Vancouver': {
+        'citation_format': 'numbered',
+        'citation_pattern': '[1]',
+        'reference_order': 'order_of_appearance',
+        'heading_style': {'1': 'Bold', '2': 'Italic', '3': 'Plain'},
+        'abstract_max_words': 300,
+        'required_sections': ['Abstract', 'Introduction', 'Methods', 'Results', 'Discussion', 'References'],
+      },
+      'IEEE': {
+        'citation_format': 'numbered',
+        'citation_pattern': '[1]',
+        'reference_order': 'order_of_appearance',
+        'heading_style': {'1': 'Bold, Roman Numeral', '2': 'Italic, Letter'},
+        'required_sections': ['Abstract', 'Introduction', 'Methodology', 'Results', 'Conclusion', 'References'],
+      },
+      'MLA 9th': {
+        'citation_format': 'author_page',
+        'citation_pattern': '(Author Page)',
+        'reference_order': 'alphabetical',
+        'heading_style': {'1': 'Bold', '2': 'Bold Italic'},
+        'required_sections': ['Works Cited'],
+      }
+    }
+    return RULES.get(style_name, RULES['APA 7th Edition'])
 
-    formatted_paras = []
-    
-    # Process paragraphs in small batches (sections)
-    batch_size = 5
-    for i in range(0, len(ir['paragraphs']), batch_size):
-        batch = ir['paragraphs'][i:i + batch_size]
-        batch_text = "\n\n".join([f"[{p['type'].upper()}] {p['text']}" for p in batch])
-        
-        system_prompt = f"""
-        You are a professional academic editor and expert in {style} formatting.
-        Your task is to reformat the provided manuscript snippet to perfectly match {style} guidelines.
-        
-        RULES:
-        1. Maintain all factual content, data, and author intended meaning.
-        2. Adjust tone to be formal, academic, and objective.
-        3. Correct in-text citations if they deviate from {style}.
-        4. Fix grammar, spelling, and sentence structure for clarity.
-        5. Return ONLY the reformatted text. Do not include meta-comments or 'Here is your text'.
-        """
-        
+def format_document(ir: dict, style: str) -> dict:
+    """
+    The core AI function. Orchestrates Citation, Reference, and Heading formatting.
+    """
+    rules = extract_rules(style)
+    change_log = []
+
+    ## STEP 1: Format Citations via Claude
+    if ANTHROPIC_CLIENT and ir.get('citations_raw'):
+        citation_sample = ir['citations_raw'][:15]  # Process first 15 for demo
+        prompt = f'''You are an academic formatting expert.
+Reformat these in-text citations to {style} format.
+Current citations: {json.dumps(citation_sample)}
+Rules: {json.dumps(rules)}
+Return a JSON object: {{"formatted": ["new citation 1", ...]}}
+Return ONLY the JSON, no explanation.'''
+
         try:
             response = ANTHROPIC_CLIENT.messages.create(
-                model="claude-3-haiku-20240307",
-                max_tokens=2000,
-                system=system_prompt,
-                messages=[
-                    {"role": "user", "content": f"Reformat this academic snippet:\n\n{batch_text}"}
-                ]
+                model='claude-3-haiku-20240307',
+                max_tokens=1000,
+                messages=[{'role':'user','content':prompt}]
             )
-            
-            reformatted_text = response.content[0].text
-            
-            # Update the first paragraph with the reformatted content
-            for j, para in enumerate(batch):
-                if j == 0:
-                    para['text'] = reformatted_text
-                else:
-                    para['text'] = "" 
-                
-            formatted_paras.extend(batch)
-            
+            raw_text = response.content[0].text
+            json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
+            if json_match:
+                result = json.loads(json_match.group())
+                formatted_cites = result.get('formatted', [])
+                for orig, new in zip(citation_sample, formatted_cites):
+                    if orig != new:
+                        change_log.append({'type':'citation','before':orig,'after':new,
+                                           'rule':f'{style} in-text citation format'})
+                ir['citations_formatted'] = formatted_cites
         except Exception as e:
-            print(f"AI Formatting Error for batch {i}: {e}")
-            formatted_paras.extend(batch)
+            print(f"Citation Formatting Error: {e}")
 
-    ir['paragraphs'] = [p for p in formatted_paras if p['text'].strip()]
-    ir['formatted_by'] = style
+    ## STEP 2: Format Reference List via Claude
+    if ANTHROPIC_CLIENT and ir.get('references_raw'):
+        refs_text = '\n'.join(ir['references_raw'][:20])  # max 20 refs
+        prompt = f'''You are an academic formatting expert.
+Reformat these references to {style} format.
+References:\n{refs_text}
+Rules: citation_format={rules['citation_format']}, order={rules['reference_order']}
+Return a JSON object: {{"references": ["formatted ref 1", ...]}}
+Sort them correctly per the style. Return ONLY JSON.'''
+
+        try:
+            response = ANTHROPIC_CLIENT.messages.create(
+                model='claude-3-haiku-20240307',
+                max_tokens=2500,
+                messages=[{'role':'user','content':prompt}]
+            )
+            raw_text = response.content[0].text
+            json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
+            if json_match:
+                result = json.loads(json_match.group())
+                formatted_refs = result.get('references', [])
+                for orig, new in zip(ir['references_raw'], formatted_refs):
+                    if orig.strip() != new.strip():
+                        change_log.append({'type':'reference','before':orig,'after':new,
+                                           'rule':f'{style} reference list format'})
+                ir['references_formatted'] = formatted_refs
+        except Exception as e:
+            print(f"Reference Formatting Error: {e}")
+
+    ## STEP 3: Format Headings (rule-based)
+    heading_rule = rules.get('heading_style', {})
+    heading_count = 0
+    for para in ir['paragraphs']:
+        if para['type'] == 'heading':
+            level = str(para.get('heading_level', 1))
+            style_desc = heading_rule.get(level, 'Bold')
+            original = para['text']
+            new_text = para['text']
+            
+            if 'Centered' in style_desc and style == 'APA 7th Edition' and level == '1':
+                para['align'] = 'center'
+                
+            if 'Roman Numeral' in style_desc and style == 'IEEE':
+                roman = ['I','II','III','IV','V','VI','VII','VIII','IX','X']
+                if not re.match(r'^[IVX]+\.', original):
+                    para['text'] = f'{roman[min(heading_count, 9)]}. {original}'
+                    new_text = para['text']
+            
+            heading_count += 1
+            if original != new_text:
+                change_log.append({'type':'heading','before':original,'after':new_text,
+                                   'rule':f'{style} heading {level} format'})
+
+    ir['change_log'] = change_log
+    ir['style_applied'] = style
+    ir['formatted'] = True
     return ir
 
 
@@ -369,29 +443,74 @@ def validate_document(ir):
     """Calculates a simulated compliance score for the intermediate representation."""
     return {'score': 0.92, 'issues': ['Manual review recommended for reference links']}
 
-def render_docx(ir, job_id):
-    """Renders the IR back into a high-quality .docx file."""
-    output_filename = f"{job_id}.docx"
+def render_docx(ir: dict, job_id: str) -> str:
+    """Renders the IR back into a professionally formatted .docx file."""
+    from docx.shared import Pt, Inches
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    
+    output_filename = f"{job_id}_formatted.docx"
     output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
     
     doc = docx.Document()
-    
-    # Add a title if identified
-    if ir.get('title'):
-        doc.add_heading(ir['title'], 0)
-    else:
-        doc.add_heading('Agent Paperpal - Formatted Manuscript', 0)
 
+    # Set document-wide font
+    style = doc.styles['Normal']
+    style.font.name = 'Times New Roman'
+    style.font.size = Pt(12)
+
+    ## Add title
+    if ir.get('title'):
+        # Title is level 0 in Paperpal UI
+        title_para = doc.add_heading(ir['title'], 0)
+        title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    ## Add abstract
+    if ir.get('abstract'):
+        h = doc.add_heading('Abstract', level=1)
+        # Some styles want Abstract centered
+        doc.add_paragraph(ir['abstract'])
+
+    ## Add body paragraphs
+    refs_started = False
     for para in ir['paragraphs']:
-        if para['type'] == 'title':
-            continue 
+        # Skip what we've already rendered
+        if para['type'] in ['title', 'abstract']:
+            continue
             
         if para['type'] == 'heading':
-            doc.add_heading(para['text'], level=para.get('heading_level', 1))
-        else:
-            p = doc.add_paragraph(para['text'])
-            # Additional style-specific logic can be added here
+            level = para.get('heading_level', 1)
+            h = doc.add_heading(para['text'], level=min(level, 4))
+            if para.get('align') == 'center':
+                h.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                
+        elif para['type'] == 'reference' and not refs_started:
+            # We handle the reference list at the end
+            refs_started = True
+            continue
             
+        elif para['type'] == 'body' and para['text'].strip():
+            p = doc.add_paragraph(para['text'])
+            # Support basic formatting if captured in Paragraphs
+            if para.get('is_bold'):
+                if p.runs:
+                    p.runs[0].bold = True
+                else:
+                    p.add_run().bold = True
+
+    ## Add formatted reference list
+    if ir.get('references_formatted') or ir.get('references_raw'):
+        doc.add_page_break()
+        ref_title = 'Works Cited' if ir.get('style_applied') == 'MLA 9th' else 'References'
+        h = doc.add_heading(ref_title, level=1)
+        h.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        refs_to_render = ir.get('references_formatted') or ir.get('references_raw', [])
+        for ref in refs_to_render:
+            p = doc.add_paragraph(ref)
+            # Apply hanging indent for professional academic look
+            p.paragraph_format.left_indent = Inches(0.5)
+            p.paragraph_format.first_line_indent = Inches(-0.5)
+
     doc.save(output_path)
     return output_path
 
@@ -428,6 +547,10 @@ def upload():
             ir = ingest_document(filepath, job_id)
             ir = detect_structure(ir)
             
+            # Additional metadata for Phase 3
+            ir['job_id'] = job_id
+            style = request.form.get('style', 'APA 7th Edition')
+            
             # 4. Save ir as JSON for debugging
             ir_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{job_id}_ir.json")
             with open(ir_path, 'w', encoding='utf-8') as f:
@@ -438,16 +561,23 @@ def upload():
             
             print(f"DEBUG: Job {job_id} - Detected Style: {ir['detected_style']}")
 
-            # 6. Continue to format_document
+            # 6. Formatting Engine (Phase 3)
             ir = format_document(ir, style)
+            
             validation = validate_document(ir)
-            render_docx(ir, job_id)
+            ir['validation'] = validation
+            
+            # Render final output
+            output_path = render_docx(ir, job_id)
             
             # Update job as complete
-            update_job(job_id, 'completed', score=validation['score'], changes=len(ir['citations_raw']))
+            update_job(job_id, 'completed', score=validation['score'], 
+                       changes=len(ir.get('change_log', [])))
             
         except Exception as e:
+            import traceback
             print(f"Pipeline Error: {e}")
+            print(traceback.format_exc())
             update_job(job_id, 'failed', error=str(e))
             
         return redirect(url_for('result', job_id=job_id))
